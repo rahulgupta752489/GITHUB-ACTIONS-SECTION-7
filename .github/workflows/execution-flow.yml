@@ -160,7 +160,9 @@ jobs:
       - name: Deploy
         run: echo "Deploying..."
 
+  # This job will only run if any other job fails
   randomjob:
+    needs: [lint, deploy]
     if: failure()
     runs-on: ubuntu-latest
     steps:
