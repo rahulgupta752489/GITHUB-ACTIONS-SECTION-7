@@ -17,12 +17,12 @@ jobs:
 
       # Download repository code to runner
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Cache npm packages to make future workflow runs faster
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
 
           # Location where npm packages are stored
@@ -48,12 +48,12 @@ jobs:
 
       # Download repository code to runner
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Cache npm packages to make future workflow runs faster
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
 
           # Location where npm packages are stored
@@ -72,7 +72,7 @@ jobs:
 
       # Upload test report file so it can be downloaded later
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
 
           # Artifact name shown in GitHub Actions
@@ -93,12 +93,12 @@ jobs:
 
       # Download repository code to runner
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Cache npm packages to make future workflow runs faster
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
 
           # Location where npm packages are stored
@@ -118,7 +118,7 @@ jobs:
 
       # Upload build output so another job can use it
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
 
           # Artifact name used in download step
@@ -139,7 +139,7 @@ jobs:
 
       # Download build files uploaded by build job
       - name: Get build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
 
           # Download artifact named dist-files
