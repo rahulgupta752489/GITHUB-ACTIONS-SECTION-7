@@ -1,0 +1,154 @@
+name: Website Deployment
+
+on:
+  push:
+
+    # Run workflow when code is pushed to master branch
+    branches:
+      - master
+
+jobs:
+  lint:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v3
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+
+          # Location where npm packages are stored
+          path: ~/.npm
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Run lint checks to find code quality issues
+      - name: Lint code
+        run: npm run lint
+
+  test:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v3
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+
+          # Location where npm packages are stored
+          path: ~/.npm
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Run application test cases
+      - name: Test code
+        run: npm run test
+
+      # Upload test report file so it can be downloaded later
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+
+          # Artifact name shown in GitHub Actions
+          name: test-report
+
+          # File to upload
+          path: test.json
+
+  build:
+
+    # Run build job only after test job succeeds
+    needs: test
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v3
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+
+          # Location where npm packages are stored
+          path: ~/.npm
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Build the application and generate production files
+      - name: Build website
+        id: build-website
+        run: npm run build
+
+      # Upload build output so another job can use it
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+
+          # Artifact name used in download step
+          name: dist-files
+
+          # Upload complete dist folder
+          path: dist
+
+  deploy:
+
+    # Run deploy job only after build job succeeds
+    needs: build
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download build files uploaded by build job
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+
+          # Download artifact named dist-files
+          name: dist-files
+
+      # Display downloaded files
+      - name: Output contents
+        run: ls
+
+      # Deployment step
+      - name: Deploy
+        run: echo "Deploying..."
