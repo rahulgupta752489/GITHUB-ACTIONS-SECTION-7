@@ -76,7 +76,7 @@ jobs:
         # Run this step only if:
         # 1. A previous step failed
         # 2. The "run-tests" step outcome is "failure"
-        if: failures() && steps.run-tests.outcome == 'failure'
+        if: failure() && steps.run-tests.outcome == 'failure'
 
         # Uploading file as an artifact to GitHub Actions
         uses: actions/upload-artifact@v4
