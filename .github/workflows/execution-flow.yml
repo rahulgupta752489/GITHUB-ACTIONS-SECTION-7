@@ -26,13 +26,14 @@ jobs:
         with:
 
           # Location where npm packages are stored
-          path: ~/.npm
+          path: node_modules
 
           # Create cache key based on package-lock.json
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
 
       # Install project dependencies
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       # Run lint checks to find code quality issues
@@ -57,13 +58,14 @@ jobs:
         with:
 
           # Location where npm packages are stored
-          path: ~/.npm
+          path: node_modules
 
           # Create cache key based on package-lock.json
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
 
       # Install project dependencies
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       # Run application test cases
@@ -109,13 +111,14 @@ jobs:
         with:
 
           # Location where npm packages are stored
-          path: ~/.npm
+          path: node_modules
 
           # Create cache key based on package-lock.json
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
 
       # Install project dependencies
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
 
       # Build the application and generate production files
