@@ -150,6 +150,13 @@ jobs:
     # secrets:
     #   some-secrets: ${{ secrets.some-secrets }}
 
+  print-deploy-result:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Deploy Outputs
+        run: echo "${{ needs.deploy.outputs.result }}"
+
   # This job will only run if any other job fails
   randomjob:
     needs: [lint, deploy]

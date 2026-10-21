@@ -9,12 +9,19 @@ on:
         default: dist-files
         type: string
 
+    outputs:
+      result:
+        description: Outputs are the result of deployment operation
+        value: ${{ jobs.deploy.outputs.outcome }}
+
     # You can add the secrets like this
     # secrets: 
     #   some-secrets:
     #     required: false
 jobs:
   deploy:
+    outputs:
+      outcome: ${{ steps.set-result.outputs.step-result }}
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -25,3 +32,6 @@ jobs:
         run: ls
       - name: Output Information
         run: echo "Deploying and Uploading..."
+      - name: Set result output
+        id: set-result
+        run: echo "::set-output name-step-result::success"
