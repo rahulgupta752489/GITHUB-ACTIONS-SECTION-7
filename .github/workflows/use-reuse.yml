@@ -1,0 +1,157 @@
+name: Using Reusable Workflow
+
+on:
+  push:
+
+    # Run workflow when code is pushed to master branch
+    branches:
+      - master
+
+jobs:
+  lint:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Run lint checks to find code quality issues
+      - name: Lint code
+        run: npm run lint
+
+  test:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Run application test cases
+      - name: Test code
+      # Giving this step an ID so it can be referenced later
+        id: run-tests
+
+        run: npm run test
+      - name: Upload test report
+        # Run this step only if:
+        # 1. A previous step failed
+        # 2. The "run-tests" step outcome is "failure"
+        if: failure() && steps.run-tests.outcome == 'failure'
+
+        # Uploading file as an artifact to GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+
+          # Artifact name shown in GitHub Actions
+          name: test-report
+
+          # File to upload
+          path: test.json
+
+  build:
+
+    # Run build job only after test job succeeds
+    needs: test
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Build the application and generate production files
+      - name: Build website
+        id: build-website
+        run: npm run build
+
+      # Upload build output so another job can use it
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+
+          # Artifact name used in download step
+          name: dist-files
+
+          # Upload complete dist folder
+          path: dist
+
+  deploy:
+
+    # Run deploy job only after build job succeeds
+    needs: build
+    uses: ./.github/workflows/reusable.yml
+
+
+
+  # This job will only run if any other job fails
+  randomjob:
+    needs: [lint, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output Information
+        run: |
+          echo "Something went wrong..."
+          echo "${{ github }}"
