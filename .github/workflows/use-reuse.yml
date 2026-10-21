@@ -145,6 +145,10 @@ jobs:
 
     with:
       artifact-name: dist-files
+    
+    # And you can use your secrets here like this
+    # secrets:
+    #   some-secrets: ${{ secrets.some-secrets }}
 
   # This job will only run if any other job fails
   randomjob:
