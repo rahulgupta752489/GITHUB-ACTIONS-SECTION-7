@@ -1,7 +1,7 @@
 name: Reusable Deploy Workflow
 
 on: 
-  workflow-call:
+  workflow_call:
     inputs:
       artifact-name:
         description: The name of the deployable artifact files
