@@ -144,7 +144,7 @@ jobs:
     uses: ./.github/workflows/reusable.yml
 
     with:
-      artifact-name: dist-file 
+      artifact-name: dist-files
 
   # This job will only run if any other job fails
   randomjob:
