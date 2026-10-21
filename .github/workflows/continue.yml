@@ -1,0 +1,173 @@
+name: Website Deployment
+
+on:
+  push:
+
+    # Run workflow when code is pushed to master branch
+    branches:
+      - master
+
+jobs:
+  lint:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Run lint checks to find code quality issues
+      - name: Lint code
+        run: npm run lint
+
+  test:
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Run application test cases
+      - name: Test code
+        continue-on-error: true
+      # Giving this step an ID so it can be referenced later
+        id: run-tests
+
+        run: npm run test
+      - name: Upload test report
+
+
+        # Uploading file as an artifact to GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+
+          # Artifact name shown in GitHub Actions
+          name: test-report
+
+          # File to upload
+          path: test.json
+
+  build:
+
+    # Run build job only after test job succeeds
+    needs: test
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code to runner
+      - name: Get code
+        uses: actions/checkout@v4
+
+      # Cache npm packages to make future workflow runs faster
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+
+          # Location where npm packages are stored
+          path: node_modules
+
+          # Create cache key based on package-lock.json
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install project dependencies
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # Build the application and generate production files
+      - name: Build website
+        id: build-website
+        run: npm run build
+
+      # Upload build output so another job can use it
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+
+          # Artifact name used in download step
+          name: dist-files
+
+          # Upload complete dist folder
+          path: dist
+
+  deploy:
+
+    # Run deploy job only after build job succeeds
+    needs: build
+
+    # Create Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download build files uploaded by build job
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with:
+
+          # Download artifact named dist-files
+          name: dist-files
+
+      # Display downloaded files
+      - name: Output contents
+        run: ls
+
+      # Deployment step
+      - name: Deploy
+        run: echo "Deploying..."
+
+  # This job will only run if any other job fails
+  randomjob:
+    needs: [lint, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output Information
+        run: |
+          echo "Something went wrong..."
+          echo "${{ github }}"
